@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['connected_id'])) {
+    header('Location: login.php');
+    exit();
+}
 ?>
 <!doctype html>
 <html lang="fr">
@@ -10,7 +14,7 @@ session_start();
         <link rel="stylesheet" href="style.css"/>
     </head>
     <body>
-        
+
     <?php include 'header.php'; ?>
         <div id="wrapper">
             <?php

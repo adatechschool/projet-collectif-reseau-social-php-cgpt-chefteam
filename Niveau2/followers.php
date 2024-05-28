@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (!isset($_SESSION['connected_id'])) {
+    header('Location: login.php');
+    exit();
+}
 ?>
 <!doctype html>
 <html lang="fr">
@@ -12,7 +16,7 @@ session_start();
     <body>
 
     <?php include 'header.php'; ?>
-    
+
         <div id="wrapper">          
             <aside>
                 <img src = "user.jpg" alt = "Portrait de l'utilisatrice"/>
