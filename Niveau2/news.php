@@ -76,7 +76,8 @@ if (!isset($_SESSION['connected_id'])) {
                 $laQuestionEnSql = "
                     SELECT posts.content,
                     posts.created,
-                    users.alias as author_name,  
+                    users.alias as author_name, 
+                    users.id as id, 
                     count(likes.id) as like_number,  
                     GROUP_CONCAT(DISTINCT tags.label) AS taglist 
                     FROM posts
@@ -88,8 +89,10 @@ if (!isset($_SESSION['connected_id'])) {
                     ORDER BY posts.created DESC  
                     LIMIT 5
                     ";
+
                 $lesInformations = $mysqli->query($laQuestionEnSql);
                 // Vérification
+                $user = $lesInformations->fetch_assoc();
                 if ( ! $lesInformations)
                 {
                     echo "<article>";
@@ -97,11 +100,14 @@ if (!isset($_SESSION['connected_id'])) {
                     echo("<p>Indice: Vérifiez la requete  SQL suivante dans phpmyadmin<code>$laQuestionEnSql</code></p>");
                     exit();
                 }
+                
+             
 
                 // Etape 3: Parcourir ces données et les ranger bien comme il faut dans du html
                 // NB: à chaque tour du while, la variable post ci dessous reçois les informations du post suivant.
                 while ($post = $lesInformations->fetch_assoc())
                 {
+                    $banane = $post['id'];
                     //la ligne ci-dessous doit etre supprimée mais regardez ce 
                     //qu'elle affiche avant pour comprendre comment sont organisées les information dans votre 
                     /* echo "<pre>" . print_r($post, 1) . "</pre>"; */
@@ -112,11 +118,13 @@ if (!isset($_SESSION['connected_id'])) {
                     // 
                     // avec le ? > ci-dessous on sort du mode php et on écrit du html comme on veut... mais en restant dans la boucle
                     ?>
+                    
                     <article>
                         <h3>
                             <time><?php echo $post['created'] ?></time>
                         </h3>
-                        <address><?php echo $post['author_name'] ?></address>
+                        
+                        <address><a target="_blank" href="wall.php?user_id=<?php echo intval($banane) ?>"><?php echo $post['author_name'] ?></a></address>
                         <div>
                             <?php echo $post['content'] ?>
                         </div>

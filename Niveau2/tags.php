@@ -26,7 +26,7 @@ if (!isset($_SESSION['connected_id'])) {
             /**
              * Etape 1: Le mur concerne un mot-clé en particulier
              */
-            $tagId = intval($_GET['tag_id']);
+            $tagId = intval($_GET['id']);
             ?>
             <?php
             /**
