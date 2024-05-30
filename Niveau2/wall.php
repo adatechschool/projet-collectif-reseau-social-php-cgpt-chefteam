@@ -57,7 +57,32 @@ if (!isset($_SESSION['connected_id'])) {
             </section>
         </aside>
         <main>
+            <form action="wall.php?user_id=<?php echo $userId; ?>" method="post">
+                <textarea name="post_content" id="post_content" rows="4" cols="50" required></textarea><br>
+                <input type="submit" value="Publier">
+            </form>
+
             <?php
+
+            if ($_SERVER["REQUEST_METHOD"] == "POST") {
+                $postContent = $_POST['post_content'];
+                $currentTime = date('Y-m-d H:i:s');
+                $userId = $_SESSION['connected_id'];
+
+                $insertPostQuery = "INSERT INTO posts (content, user_id, created) VALUES (?, ?, ?)";
+                $insertPostStatement = $mysqli->prepare($insertPostQuery);
+                $insertPostStatement->bind_param("sss", $postContent, $userId, $currentTime);
+
+                if ($insertPostStatement->execute()) {
+                    echo "Le message a été publié avec succès.";
+                } else {
+                    echo "Une erreur s'est produite lors de la publication du message.";
+                }
+
+                $insertPostStatement->close();
+                header('Location: wall.php?user_id=' . $user_id);
+                exit();
+            }
             /**
              * Etape 3: récupérer tous les messages de l'utilisatrice
              */
@@ -100,38 +125,9 @@ if (!isset($_SESSION['connected_id'])) {
                 </article>
             <?php } ?>
 
-                <?php 
 
-                 $authorId = $_POST['pseudo'];
-                 $postContent = $_POST['message'];
-
-                if(isset($_POST['valider'])){
-
-                    if(!empty($_POST['message'])){
-                
-                    $inserermsg=$mysqli->prepare( "INSERT INTO posts "
-                    . "(id, user_id, content, created, parent_id) "
-                    . "VALUES (NULL, "
-                    . $authorId . ", "
-                    . "'" . $postContent . "', "
-                    . "NOW(), "
-                    . "NULL);"
-                    );
-
-                    $inserermsg->execute(array('pseudo'->$authorId, 'message'->$postContent));
-                    } else {
-                        echo "Ca ne marche pas";
-                    }
-                } 
-                
-                ?>
-                <form method="POST" action="" >
-                    <label name="pseudo"> <font color="white">mon posttttt</font></label> <br><br> 
-                    <textarea name="message" ></textarea> <br><br>
-                    <input name="valider" type="submit"/>
-            </form>
-                
         </main>
     </div>
 </body>
+
 </html>
