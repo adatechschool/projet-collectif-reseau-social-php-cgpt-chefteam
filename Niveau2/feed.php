@@ -97,13 +97,15 @@ if (!isset($_SESSION['connected_id'])) {
                     </h3>
                     <address><?php echo $post['author_name'] ?></address>
                     <div>
-                        <p><?php echo $post['content'] ?></p>
-                        
+                        <p><?php echo $post['content'] ?></p> 
                     </div>                                            
                     <footer>
-                        <small>♥ <?php echo $post['like_number'] ?></small>
+                    
+                        <small>♥ <?php echo $post['like_number']  ?></small>
+                
                         <a href=""><?php echo $post['taglist'] ?></a>
                     </footer>
+                    
                 </article>
                 <?php
                 // et de pas oublier de fermer ici vote while

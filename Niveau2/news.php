@@ -121,7 +121,8 @@ if (!isset($_SESSION['connected_id'])) {
                             <?php echo $post['content'] ?>
                         </div>
                         <footer>
-                            <small>♥ <?php echo $post['like_number'] ?></small>
+                            <small>♥ <?php echo $post['like_number'] ?></small> 
+                            <button style="display: block;">Like poto</button>
                             <a href=""><?php echo $post['taglist'] ?></a>
                         </footer>
                     </article>
