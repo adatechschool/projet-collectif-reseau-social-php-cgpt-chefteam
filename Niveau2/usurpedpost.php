@@ -4,106 +4,119 @@ if (!isset($_SESSION['connected_id'])) {
     header('Location: login.php');
     exit();
 }
+
+// Assurez-vous que $_SESSION['likes'] est un tableau
+if (!isset($_SESSION['likes']) || !is_array($_SESSION['likes'])) {
+    $_SESSION['likes'] = array();
+}
+
+// Traitement du formulaire de like
+if (isset($_POST['like']) && isset($_POST['post_id'])) {
+    $post_id = $_POST['post_id'];
+    if (!isset($_SESSION['likes'][$post_id])) {
+        $_SESSION['likes'][$post_id] = 0;
+    }
+    $_SESSION['likes'][$post_id]++;
+    // Redirection après le traitement du formulaire pour éviter la resoumission
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+// Connexion à la base de données
+$mysqli = new mysqli("localhost", "root", "", "socialnetwork");
+if ($mysqli->connect_errno) {
+    echo "<article>";
+    echo ("Échec de la connexion : " . $mysqli->connect_error);
+    echo ("<p>Indice: Vérifiez les paramètres de <code>new mysqli(...</code></p>");
+    echo "</article>";
+    exit();
+}
+
+// Récupérer les derniers messages
+$laQuestionEnSql = "
+    SELECT posts.content,
+           posts.created,
+           users.alias as author_name, 
+           posts.id as post_id, 
+           count(likes.id) as like_number,  
+           GROUP_CONCAT(DISTINCT tags.label) AS taglist 
+    FROM posts
+    JOIN users ON users.id = posts.user_id
+    LEFT JOIN posts_tags ON posts.id = posts_tags.post_id  
+    LEFT JOIN tags ON posts_tags.tag_id = tags.id 
+    LEFT JOIN likes ON likes.post_id = posts.id 
+    GROUP BY posts.id
+    ORDER BY posts.created DESC  
+    LIMIT 5
+";
+
+$lesInformations = $mysqli->query($laQuestionEnSql);
+if (!$lesInformations) {
+    echo "<article>";
+    echo ("Échec de la requête : " . $mysqli->error);
+    echo ("<p>Indice: Vérifiez la requête SQL suivante dans phpmyadmin<code>$laQuestionEnSql</code></p>");
+    echo "</article>";
+    exit();
+}
 ?>
+
 <!doctype html>
 <html lang="fr">
-    <head>
-        <meta charset="utf-8">
-        <title>ReSoC - Post d'usurpateur</title> 
-        <meta name="author" content="Julien Falconnet">
-        <link rel="stylesheet" href="style.css"/>
-    </head>
-    <body>
-     
-    <?php include 'headerdeco.php'; ?>
 
-        <div id="wrapper" >
+<head>
+    <meta charset="utf-8">
+    <title>ReSoC - Actualités</title>
+    <meta name="author" content="Julien Falconnet">
+    <link rel="stylesheet" href="style.css" />
+</head>
 
-            <aside>
-                <h2>Présentation</h2>
-                <p>Sur cette page on peut poster un message en se faisant 
-                    passer pour quelqu'un d'autre</p>
-            </aside>
-            <main>
+<body>
+
+    <?php include 'header.php'; ?>
+
+    <div id="wrapper">
+        <aside>
+            <img src="user.jpg" alt="Portrait de l'utilisatrice" />
+            <section>
+                <h3>Présentation</h3>
+                <p>Sur cette page vous trouverez les derniers messages de
+                    tous les utilisatrices du site.</p>
+            </section>
+        </aside>
+        <main>
+            <?php
+            while ($post = $lesInformations->fetch_assoc()) {
+                $post_id = $post['post_id'];
+                $like_number = isset($_SESSION['likes'][$post_id]) ? $_SESSION['likes'][$post_id] : 0;
+                ?>
+
                 <article>
-                    <h2>Poster un message</h2>
-                    <?php
-                    /**
-                     * BD
-                     */
-                    $mysqli = new mysqli("localhost", "root", "", "socialnetwork");
-                    /**
-                     * Récupération de la liste des auteurs
-                     */
-                    $listAuteurs = [];
-                    $laQuestionEnSql = "SELECT * FROM users";
-                    $lesInformations = $mysqli->query($laQuestionEnSql);
-                    while ($user = $lesInformations->fetch_assoc())
-                    {
-                        $listAuteurs[$user['id']] = $user['alias'];
-                    }
+                    <h3>
+                        <time><?php echo $post['created'] ?></time>
+                    </h3>
+                    <address>
+                        <a target="_blank"
+                            href="wall.php?user_id=<?php echo intval($post['author_id']) ?>"><?php echo $post['author_name'] ?></a>
+                    </address>
+                    <div>
+                        <?php echo $post['content'] ?>
+                    </div>
+                    <footer>
+                        <small>♥ <?php echo $like_number; ?></small>
 
+                        <form method="POST" action="">
+                            <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
+                            <input type="submit" name="like" value="Like moi bébé">
+                        </form>
 
-                    /**
-                     * TRAITEMENT DU FORMULAIRE
-                     */
-                    // Etape 1 : vérifier si on est en train d'afficher ou de traiter le formulaire
-                    // si on recoit un champs email rempli il y a une chance que ce soit un traitement
-                    $enCoursDeTraitement = isset($_POST['auteur']);
-                    if ($enCoursDeTraitement)
-                    {
-                        // on ne fait ce qui suit que si un formulaire a été soumis.
-                        // Etape 2: récupérer ce qu'il y a dans le formulaire @todo: c'est là que votre travaille se situe
-                        // observez le résultat de cette ligne de débug (vous l'effacerez ensuite)
-                        echo "<pre>" . print_r($_POST, 1) . "</pre>";
-                        // et complétez le code ci dessous en remplaçant les ???
-                        $authorId = $_POST['auteur'];
-                        $postContent = $_POST['message'];
-
-
-                        //Etape 3 : Petite sécurité
-                        // pour éviter les injection sql : https://www.w3schools.com/sql/sql_injection.asp
-                        $authorId = intval($mysqli->real_escape_string($authorId));
-                        $postContent = $mysqli->real_escape_string($postContent);
-                        //Etape 4 : construction de la requete
-                        $lInstructionSql = "INSERT INTO posts "
-                                . "(id, user_id, content, created, parent_id) "
-                                . "VALUES (NULL, "
-                                . $authorId . ", "
-                                . "'" . $postContent . "', "
-                                . "NOW(), "
-                                /* . "'', " */
-                                . "NULL);"
-                                ;
-                        echo $lInstructionSql;
-                        // Etape 5 : execution
-                        $ok = $mysqli->query($lInstructionSql);
-                        if ( ! $ok)
-                        {
-                            echo "Impossible d'ajouter le message: " . $mysqli->error;
-                        } else
-                        {
-                            echo "Message posté en tant que :" . $listAuteurs[$authorId];
-                        }
-                    }
-                    ?>                     
-                    <form action="usurpedpost.php" method="post">
-                        <input type='hidden' name='???' value='achanger'>
-                        <dl>
-                            <dt><label for='auteur'>Auteur</label></dt>
-                            <dd><select name='auteur'>
-                                    <?php
-                                    foreach ($listAuteurs as $id => $alias)
-                                        echo "<option value='$id'>$alias</option>";
-                                    ?>
-                                </select></dd>
-                            <dt><label for='message'>Message</label></dt>
-                            <dd><textarea name='message'></textarea></dd>
-                        </dl>
-                        <input type='submit'>
-                    </form>               
+                        <a href=""><?php echo $post['taglist'] ?></a>
+                    </footer>
                 </article>
-            </main>
-        </div>
-    </body>
+                <?php
+            }
+            ?>
+        </main>
+    </div>
+</body>
+
 </html>
