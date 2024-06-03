@@ -116,7 +116,7 @@ if (!$lesInformations) {
 
                         <form method="POST" action="">
                             <input type="hidden" name="post_id" value="<?php echo $post_id; ?>">
-                            <input type="submit" name="like" value="Ajouter un like">
+                            <input type="submit" name="like" value="Like babe">
                         </form>
 
                         <a href=""><?php echo $post['taglist'] ?></a>
