@@ -4,6 +4,28 @@ if (!isset($_SESSION['connected_id'])) {
     header('Location: login.php');
     exit();
 }
+
+if (isset($_POST['user_id'])) {
+    $user_id = intval($_POST['user_id']);
+    $connected_id = $_SESSION['connected_id'];
+
+    $mysqli = new mysqli("localhost", "root", "", "socialnetwork");
+
+    $laQuestionEnSql = "INSERT INTO followers (followed_user_id, following_user_id) VALUES (?,?)";
+    $stmt = $mysqli->prepare($laQuestionEnSql);
+    $stmt->bind_param("ii", $user_id, $connected_id);
+
+    if ($stmt->execute()) {
+        echo "Vous êtes maintenant abonné à cet utilisateur.";
+    } else {
+        echo "Erreur lors de l'abonnement.";
+    }
+
+    $stmt->close();
+    header('Location: wall.php?user_id='. $user_id);
+    exit();
+}
+
 ?>
 <!doctype html>
 <html lang="fr">
@@ -35,7 +57,7 @@ if (!isset($_SESSION['connected_id'])) {
                 // Etape 1: récupérer l'id de l'utilisateur
                 $userId = intval($_GET['user_id']);
                 // Etape 2: se connecter à la base de donnée
-                $mysqli = new mysqli("localhost", "root", "", "socialnetwork");
+                $mysqli2 = new mysqli("localhost", "root", "", "socialnetwork");
                 // Etape 3: récupérer le nom de l'utilisateur
                 $laQuestionEnSql = "
                     SELECT users.* 
@@ -44,7 +66,7 @@ if (!isset($_SESSION['connected_id'])) {
                     WHERE followers.following_user_id='$userId'
                     GROUP BY users.id
                     ";
-                $lesInformations = $mysqli->query($laQuestionEnSql);
+                $lesInformations = $mysqli2->query($laQuestionEnSql);
                 // Etape 4: à vous de jouer
                 //@todo: faire la boucle while de parcours des abonnés et mettre les bonnes valeurs ci dessous 
 

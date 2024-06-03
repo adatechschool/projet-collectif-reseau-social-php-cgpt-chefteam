@@ -4,6 +4,7 @@ if (!isset($_SESSION['connected_id'])) {
     header('Location: login.php');
     exit();
 }
+
 ?>
 <!doctype html>
 <html lang="fr">
@@ -55,6 +56,11 @@ if (!isset($_SESSION['connected_id'])) {
                 <p>Sur cette page vous trouverez tous les message de l'utilisatrice : <?php echo $user['alias'] ?>
                     (n° <?php echo $userId ?>)
                 </p>
+                <?php if ($_SESSION['connected_id']!= $userId) ?>
+            <form action="subscriptions.php" method="post">
+                <input type="hidden" name="user_id" value="<?php echo $userId?>">
+                <input type="submit" value="S'abonner">
+            </form>
             </section>
         </aside>
         <main>
